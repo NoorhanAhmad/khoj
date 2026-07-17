@@ -585,9 +585,8 @@ function Navbar() {
         <nav class="navbar-wrapper">
             <div class="container navbar-container">
                 <a href="#/" class="nav-brand">
-                    <span class="logo-eye">👁️</span>
-                    <span class="logo-text">khoj</span>
-                </a>
+                <img src="assets/logo1.png" alt="Khoj Logo" class="nav-logo-img">
+            </a>
                 <div class="nav-search-container">
                     <input type="text" id="nav-search-input" class="input-khoj nav-search-input" placeholder="search brands, cargos, accessories..." value="${store.searchQuery}">
                     <span class="search-icon">🔍</span>
