@@ -6,12 +6,12 @@
 /* ---------- DESIGN SYSTEM TOKENS ---------- */
 :root {
     /* Colors */
-    --color-bg: #FCF6EC;             /* Warm organic cream background */
+    --color-bg: #fcf8e8;             /* Warm organic cream background */
     --color-text: #1C1917;           /* Deep stone charcoal for text */
-    --color-primary: #3B82F6;        /* Khoj electric blue */
-    --color-secondary: #EC4899;      /* Neon pink sticker color */
-    --color-accent-yellow: #F59E0B;   /* Bright mango yellow */
-    --color-accent-green: #10B981;    /* Fresh mint green */
+    --color-primary: #8B0000;        /* Khoj electric blue */
+    --color-secondary: #E691F7;      /* Neon pink sticker color */
+    --color-accent-yellow: #FF6347;   /* Bright mango yellow */
+    --color-accent-green: #7B855B;    /* Fresh mint green */
     --color-border: #1C1917;         /* High contrast borders */
     --color-card-bg: #FFFFFF;        /* Clean card white */
     
