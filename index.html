@@ -22,23 +22,24 @@
 <body>
     <!-- Playful Background Grain and Sticker Overlays -->
     <div class="grain-overlay"></div>
-    
+
     <!-- App Shell Structure -->
     <div class="app-shell">
         <!-- Header / Navbar Container -->
         <header id="header-root"></header>
-        
+
         <!-- Main Content Area -->
         <main id="app-root" class="main-content"></main>
-        
+
         <!-- Cart Drawer Container -->
         <div id="cart-drawer-root"></div>
-        
+
         <!-- Global Notification Banner / Toast Container -->
         <div id="toast-root" class="toast-container"></div>
     </div>
-    
+
     <!-- Load Unified SPA Script -->
+    <script type="module" src="supabaseClient.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>

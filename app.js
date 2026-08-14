@@ -6,6 +6,7 @@
 /* ==========================================
    1. STATIC DATA CATALOG (mockData)
    ========================================== */
+import { supabase } from './supabaseClient.js';
 const categories = [
     { id: 'streetwear', name: 'gully wear', icon: '👕', description: 'oversized tees, cargos, and street essentials' },
     { id: 'thrift', name: 'retro thrift', icon: '🎒', description: 'handpicked 90s windbreakers, denim, and preloved jackets' },
@@ -263,7 +264,8 @@ class StateStore {
         this.orders = this.loadState('khoj_orders', initialOrders);
         this.applications = this.loadState('khoj_applications', initialApplications);
         this.cart = this.loadState('khoj_cart', []);
-       
+        this.currentUser = null;
+
         this.searchQuery = '';
         this.selectedCategory = null;
         this.selectedCity = null;
@@ -282,6 +284,36 @@ class StateStore {
 
     saveState(key, value) {
         try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    }
+
+    async loadProductsFromSupabase() {
+        const { data, error } = await supabase.from('products').select('*, sellers(*)');
+        if (error) {
+            console.log('Supabase error:', error);
+            return;
+        }
+        this.products = data;
+        this.notify();
+    }
+
+    async loadCurrentUser() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { this.currentUser = null; this.mySellerId = null; this.mySeller = null; return; }
+
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        this.currentUser = profile;
+        this.currentUserRole = profile ? profile.role : 'buyer';
+
+        if (profile && profile.role === 'seller') {
+            const { data: seller, error: sellerLookupErr } = await supabase.from('sellers').select('*').eq('owner_id', session.user.id).single();
+            if (sellerLookupErr) console.log('seller lookup error:', sellerLookupErr, 'for user:', session.user.id);
+            this.mySellerId = seller ? seller.id : null;
+            this.mySeller = seller || null;
+        } else {
+            this.mySellerId = null;
+            this.mySeller = null;
+        }
+        this.notify();
     }
 
     subscribe(callback) {
@@ -487,6 +519,8 @@ const store = new StateStore();
 const routes = {
     '/': renderHome,
     '/explore': renderExplore,
+    '/login': renderLogin,
+    '/signup': renderSignup,
     '/product/:id': renderProductDetails,
     '/shop/:id': renderStorefront,
     '/checkout': renderCheckout,
@@ -554,13 +588,62 @@ async function handleRouting() {
     }
 }
 
+function renderLogin() {
+    return `
+        <div class="container" style="max-width: 420px; margin: 60px auto;">
+            <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">log in to khoj</h2>
+            <input type="email" id="login-email" class="input-khoj" placeholder="email" style="width:100%; margin-bottom:10px;">
+            <input type="password" id="login-password" class="input-khoj" placeholder="password" style="width:100%; margin-bottom:16px;">
+            <button id="login-submit" class="btn-khoj" style="width:100%;">log in</button>
+            <p style="margin-top:14px;">no account? <a href="#/signup">sign up</a></p>
+        </div>
+    `;
+}
+renderLogin.onMount = () => {
+    document.getElementById('login-submit').addEventListener('click', async () => {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { store.showToast(error.message, 'error'); return; }
+        await store.loadCurrentUser();
+        navigate('/');
+    });
+};
+
+function renderSignup() {
+    return `
+        <div class="container" style="max-width: 420px; margin: 60px auto;">
+            <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">create your khoj account</h2>
+            <input type="text" id="signup-name" class="input-khoj" placeholder="full name" style="width:100%; margin-bottom:10px;">
+            <input type="email" id="signup-email" class="input-khoj" placeholder="email" style="width:100%; margin-bottom:10px;">
+            <input type="password" id="signup-password" class="input-khoj" placeholder="password" style="width:100%; margin-bottom:16px;">
+            <button id="signup-submit" class="btn-khoj" style="width:100%;">sign up</button>
+            <p style="margin-top:14px;">already have an account? <a href="#/login">log in</a></p>
+        </div>
+    `;
+}
+renderSignup.onMount = () => {
+    document.getElementById('signup-submit').addEventListener('click', async () => {
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) { store.showToast(error.message, 'error'); return; }
+        await supabase.from('profiles').insert({ id: data.user.id, name, role: 'buyer' });
+        await store.loadCurrentUser();
+        store.showToast('welcome to khoj! 🎉');
+        navigate('/');
+    });
+};
+
 /* ==========================================
    4. LAYOUT COMPONENTS (components)
    ========================================== */
 function Navbar() {
     const cartCount = store.getCartCount();
     const role = store.currentUserRole;
-   
+    const isLoggedIn = !!store.currentUser;
+
     let roleLinksHTML = '';
     if (role === 'buyer') {
         roleLinksHTML = `
@@ -594,11 +677,10 @@ function Navbar() {
                 <div class="nav-actions">
                     ${roleLinksHTML}
                     <div class="role-switcher-widget">
-                        <select id="role-select" class="input-khoj role-selector-dropdown">
-                            <option value="buyer" ${role === 'buyer' ? 'selected' : ''}>buyer view</option>
-                            <option value="seller" ${role === 'seller' ? 'selected' : ''}>seller view</option>
-                            <option value="admin" ${role === 'admin' ? 'selected' : ''}>admin view</option>
-                        </select>
+                        ${isLoggedIn
+            ? `<button id="logout-btn" class="btn-khoj">log out</button>`
+            : `<a href="#/login" class="btn-khoj">log in</a>`
+                        }
                     </div>
                     <button id="cart-toggle-btn" class="btn-khoj cart-toggle-btn">
                         <span>khazana</span>
@@ -614,7 +696,8 @@ Navbar.onMount = () => {
     const searchInput = document.getElementById('nav-search-input');
     const cartBtn = document.getElementById('cart-toggle-btn');
     const roleSelect = document.getElementById('role-select');
-   
+    const logoutBtn = document.getElementById('logout-btn');
+
     if (searchInput) {
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -631,6 +714,16 @@ Navbar.onMount = () => {
             if (drawer) drawer.classList.add('open');
         });
     }
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            store.currentUser = null;
+            store.currentUserRole = 'buyer';
+            store.notify();
+            navigate('/');
+            handleRouting();
+        });
+    }
     if (roleSelect) {
         roleSelect.addEventListener('change', (e) => {
             const selectedRole = e.target.value;
@@ -641,29 +734,30 @@ Navbar.onMount = () => {
         });
     }
 };
-
 function ProductCard(product, index = 0) {
-    const seller = store.sellers[product.sellerId] || { name: 'independent brand', logo: '✨' };
+    const seller = product.sellers || { name: 'independent brand', logo: '✨' };
     const rotationDeg = (index % 2 === 0) ? '-1.2deg' : '1deg';
     const formattedPrice = `Rs. ${product.price.toLocaleString()}`;
     const stickerRotation = (index % 3 === 0) ? '-3deg' : '3deg';
-   
+    const hasImage = !!product.image_url;
+
     return `
         <div class="product-card" style="--rotation: ${rotationDeg};">
-            <a href="#/product/${product.id}" class="card-visual-wrapper" style="background: ${product.gradient};">
-                <div class="visual-placeholder">
-                    <span class="visual-emoji">${getCategoryEmoji(product.category)}</span>
-                </div>
-                ${product.stickerText ? `
-                    <div class="sticker ${product.stickerColor || 'yellow'} card-sticker" style="--rotate-deg: ${stickerRotation};">
-                        ${product.stickerText}
+            <a href="#/product/${product.id}" class="card-visual-wrapper" style="${hasImage ? '' : `background: ${product.gradient || 'linear-gradient(45deg, #4B5563 0%, #1F2937 100%)'};`}">
+                ${hasImage
+            ? `<img src="${product.image_url}" alt="${product.name}" class="product-real-image">`
+            : `<div class="visual-placeholder"><span class="visual-emoji">${getCategoryEmoji(product.category)}</span></div>`
+        }
+                ${product.sticker_text ? `
+                    <div class="sticker ${product.sticker_color || 'yellow'} card-sticker" style="--rotate-deg: ${stickerRotation};">
+                        ${product.sticker_text}
                     </div>
                 ` : ''}
-                <div class="visual-location">📍 ${product.location}</div>
+                ${product.location ? `<div class="visual-location">📍 ${product.location}</div>` : ''}
             </a>
             <div class="card-details">
-                <a href="#/shop/${seller.id}" class="card-seller-link">
-                    <span class="seller-logo">${seller.logo}</span>
+                <a href="#/shop/${seller.id || ''}" class="card-seller-link">
+                    <span class="seller-logo">${seller.logo || '✨'}</span>
                     <span>${seller.name}</span>
                 </a>
                 <h3 class="card-title">
@@ -1582,16 +1676,31 @@ function renderSellerApply() {
 renderSellerApply.onMount = () => {
     const form = document.getElementById('seller-apply-form');
     if (form) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (!store.currentUser) {
+                store.showToast('log in first to apply as a seller', 'info');
+                navigate('/login');
+                return;
+            }
+
             const brandName = document.getElementById('app-brand').value.trim();
             const ownerName = document.getElementById('app-owner').value.trim();
             const city = document.getElementById('app-city').value.trim().toLowerCase();
             const instagram = document.getElementById('app-ig').value.trim();
             const bio = document.getElementById('app-bio').value.trim();
-           
-            store.addApplication({ brandName, ownerName, city, instagram, bio });
-            alert("🎉 application submitted! switch role to 'Admin view' in the navbar to approve this brand storefront.");
+
+            const { error } = await supabase.from('seller_applications').insert({
+                applicant_id: store.currentUser.id,
+                brand_name: brandName,
+                owner_name: ownerName,
+                city, instagram, bio
+            });
+
+            if (error) { store.showToast('application failed, try again', 'error'); return; }
+
+            store.showToast('🎉 application submitted! an admin will review it soon.');
             navigate('/');
         });
     }
@@ -1599,10 +1708,9 @@ renderSellerApply.onMount = () => {
 
 // --- SELLER DASHBOARD VIEW ---
 function renderSellerDashboard() {
-    const sellerId = store.activeSellerId;
-    const sellerProfile = store.sellers[sellerId] || { name: 'gully wear', logo: '⚡', city: 'karachi' };
-    const sellerProducts = store.products.filter(p => p.sellerId === sellerId);
-    const sellerOrders = store.orders.filter(order => order.items.some(item => item.sellerId === sellerId));
+    const sellerId = store.mySellerId;
+    const sellerProfile = store.mySeller || { name: 'my store', logo: '⚡', city: '' };
+    if (!sellerProfile.logo) sellerProfile.logo = '⚡';    const sellerProducts = store.products.filter(p => p.seller_id === sellerId);    const sellerOrders = store.orders.filter(order => order.items.some(item => item.sellerId === sellerId));
     const fulfilledOrders = sellerOrders.filter(o => o.status === 'delivered');
     const revenue = fulfilledOrders.reduce((sum, order) => {
         const sellerItemsSum = order.items
@@ -1772,6 +1880,10 @@ function renderSellerDashboard() {
                             <label for="prod-details">product details & description</label>
                             <textarea id="prod-details" class="input-khoj textarea-khoj" placeholder="describe the fabric weight, vintage washing, exact sizing fits..." rows="3" required></textarea>
                         </div>
+                        <div class="form-group">
+                            <label for="prod-image">product photo</label>
+                            <input type="file" id="prod-image" accept="image/*" class="input-khoj">
+                        </div>
                         <button type="submit" class="btn-khoj btn-blue modal-submit-btn">launch listing live 🚀</button>
                     </form>
                 </div>
@@ -1792,8 +1904,14 @@ renderSellerDashboard.onMount = () => {
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
    
     if (addProductForm) {
-        addProductForm.addEventListener('submit', (e) => {
+        addProductForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (!store.mySellerId) {
+                store.showToast('seller account not found, try logging out and back in', 'error');
+                return;
+            }
+
             const name = document.getElementById('prod-name').value.trim();
             const price = parseInt(document.getElementById('prod-price').value);
             const category = document.getElementById('prod-cat').value;
@@ -1801,10 +1919,32 @@ renderSellerDashboard.onMount = () => {
             const sizesRaw = document.getElementById('prod-sizes').value;
             const details = document.getElementById('prod-details').value.trim();
             const sizes = sizesRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
-            const sellerId = store.activeSellerId;
             const location = 'karachi';
-           
-            store.addProduct({ name, price, category, condition, sizes, details, sellerId, location });
+
+            const imageFile = document.getElementById('prod-image').files[0];
+            let imageUrl = null;
+
+            if (imageFile) {
+                const fileName = `${Date.now()}-${imageFile.name}`;
+                const { error: uploadErr } = await supabase.storage.from('product-images').upload(fileName, imageFile);
+                if (uploadErr) {
+                    store.showToast('image upload failed, try a smaller photo', 'error');
+                    return;
+                }
+                const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+                imageUrl = urlData.publicUrl;
+            }
+
+            const { error } = await supabase.from('products').insert({
+                seller_id: store.mySellerId,
+                name, price, category, condition, sizes, details, location,
+                image_url: imageUrl
+            });
+
+            if (error) { store.showToast('failed to list product', 'error'); return; }
+
+            store.showToast(`"${name}" is now live! 📦`);
+            await store.loadProductsFromSupabase();
             closeModal();
             addProductForm.reset();
             handleRouting();
@@ -1834,8 +1974,8 @@ renderSellerDashboard.onMount = () => {
 };
 
 // --- ADMIN DASHBOARD VIEW ---
-function renderAdminDashboard() {
-    const apps = store.applications;
+async function renderAdminDashboard() {
+    const { data: apps } = await supabase.from('seller_applications').select('*');
     const products = store.products;
     const activeSellersCount = Object.keys(store.sellers).length;
     const totalEarnings = store.orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + o.subtotal, 0);
@@ -1887,14 +2027,14 @@ function renderAdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${apps.map(app => {
-                                        const isPending = app.status === 'pending';
-                                        const statusClass = app.status === 'approved' ? 'green' : app.status === 'rejected' ? 'pink' : 'yellow';
-                                        return `
+                                   ${apps.map(app => {
+                                       const isPending = app.status === 'pending';
+                                       const statusClass = app.status === 'approved' ? 'green' : app.status === 'rejected' ? 'pink' : 'yellow';
+                                       return `
                                             <tr>
                                                 <td class="bold-cell">
-                                                    <div>${app.brandName}</div>
-                                                    <span style="font-size: 0.75rem; color: #666; font-weight: 500;">👤 ${app.ownerName} • ${app.city}</span>
+                                                    <div>${app.brand_name}</div>
+                                                    <span style="font-size: 0.75rem; color: #666; font-weight: 500;">👤 ${app.owner_name} • ${app.city}</span>
                                                 </td>
                                                 <td><a href="https://instagram.com" target="_blank" class="ig-link">${app.instagram}</a></td>
                                                 <td style="font-size: 0.8rem; line-height: 1.4; max-width: 200px;">${app.bio}</td>
@@ -1954,13 +2094,30 @@ function renderAdminDashboard() {
 renderAdminDashboard.onMount = () => {
     const appBtns = document.querySelectorAll('.app-action-btn');
     appBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const appId = btn.dataset.appId;
             const action = btn.dataset.action;
-            if (confirm(`are you sure you want to ${action === 'approved' ? 'approve' : 'reject'} this brand storefront application?`)) {
-                store.updateApplicationStatus(appId, action);
-                handleRouting();
+            if (!confirm(`are you sure you want to ${action === 'approved' ? 'approve' : 'reject'} this brand storefront application?`)) return;
+
+            const { data: app } = await supabase.from('seller_applications').select('*').eq('id', appId).single();
+
+            await supabase.from('seller_applications').update({ status: action }).eq('id', appId);
+
+            if (action === 'approved') {
+                const { error: sellerErr } = await supabase.from('sellers').insert({
+                    owner_id: app.applicant_id,
+                    name: app.brand_name,
+                    city: app.city,
+                    bio: app.bio,
+                    instagram: app.instagram
+                });
+                if (sellerErr) console.log('seller insert error:', sellerErr);
+
+                const { error: roleErr } = await supabase.from('profiles').update({ role: 'seller' }).eq('id', app.applicant_id);
+                if (roleErr) console.log('role update error:', roleErr);
             }
+
+            handleRouting();
         });
     });
    
@@ -2008,12 +2165,14 @@ function initToastSystem() {
     });
 }
 
-function bootstrap() {
+async function bootstrap() {
     renderGlobalShell();
     initToastSystem();
     store.subscribe(() => { renderGlobalShell(); });
     window.addEventListener('hashchange', handleRouting);
     window.addEventListener('DOMContentLoaded', handleRouting);
+    await store.loadProductsFromSupabase();
+    await store.loadCurrentUser();
     handleRouting();
 }
 
