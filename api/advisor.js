@@ -26,8 +26,7 @@ export default async function handler(req, res) {
         });
 
         const data = await response.json();
-        const suggestion = data.choices?.[0]?.message?.content || 'no suggestion available right now.';
-        res.status(200).json({ suggestion });
+        res.status(200).json({ debug: data });
     } catch (err) {
         res.status(500).json({ error: 'AI request failed' });
     }
