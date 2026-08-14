@@ -17,7 +17,7 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.AI_GATEWAY_API_KEY}`
+                'Authorization': `Bearer ${process.env.GATEWAY_KEY}`
             },
             body: JSON.stringify({
                 model: 'google/gemini-2.0-flash',
