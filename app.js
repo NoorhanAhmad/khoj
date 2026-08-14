@@ -1758,6 +1758,7 @@ function renderSellerDashboard() {
                         <div class="panel-header-row">
                             <h3>my active listings</h3>
                             <button id="show-add-modal-btn" class="btn-khoj btn-blue list-add-trigger">+ list new find</button>
+                            <button id="ai-advisor-btn" class="btn-khoj btn-blue" style="margin-left: 10px;">✨ ai marketing tips</button>
                         </div>
                         <div class="listings-table-container">
                             ${sellerProducts.length === 0 ? `
@@ -1791,6 +1792,7 @@ function renderSellerDashboard() {
                    
                     <div class="dashboard-panel-card" style="margin-top: 28px;">
                         <h3>incoming orders queue</h3>
+                        <div id="ai-advisor-result" style="padding: 14px; display: none; background: #fdf6ec; border-radius: 8px; margin: 12px 0; font-size: 0.9rem; line-height: 1.5;"></div>
                         <div class="listings-table-container">
                             ${sellerOrders.length === 0 ? `
                                 <div class="table-empty-state"><p>no orders received yet. when buyers purchase your listings, they will show up here.</p></div>
@@ -1944,6 +1946,22 @@ renderSellerDashboard.onMount = () => {
                 name, price, category, condition, sizes, details, location,
                 image_url: imageUrl
             });
+            const aiBtn = document.getElementById('ai-advisor-btn');
+            if (aiBtn) {
+                aiBtn.addEventListener('click', async () => {
+                    const resultBox = document.getElementById('ai-advisor-result');
+                    resultBox.style.display = 'block';
+                    resultBox.textContent = 'thinking...';
+                    const myProducts = store.products.filter(p => p.seller_id === store.mySellerId);
+                    const res = await fetch('/api/advisor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode: 'seller', payload: { products: myProducts } })
+                    });
+                    const data = await res.json();
+                    resultBox.textContent = data.suggestion || data.error;
+                });
+            }
 
             if (error) { store.showToast('failed to list product', 'error'); return; }
 
