@@ -912,10 +912,10 @@ function renderHome() {
                         list in minutes, <br>
                         get <span class="highlight">found</span> in seconds.
                     </h1>
-                    <p class="hero-subtitle">
-                        no boring templates. no corporate jargon. just pure curated finds, local brands, and gems sourced locally from Pakistan.
-                        for Pakistan, from Pakistan
-                    </p>
+                  <p class="hero-subtitle">
+  no boring templates. no corporate jargon. just pure curated finds, local brands, and gems sourced locally<br>
+  <em>for Pakistan, from Pakistan</em>
+</p>
                     <div class="hero-ctas">
                         <a href="#/explore" class="btn-khoj btn-blue hero-primary-btn">start digging 🔎</a>
                         <a href="#/explore" class="btn-khoj hero-secondary-btn">fresh drops ⚡</a>
