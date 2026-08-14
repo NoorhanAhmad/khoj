@@ -2104,14 +2104,18 @@ renderAdminDashboard.onMount = () => {
             await supabase.from('seller_applications').update({ status: action }).eq('id', appId);
 
             if (action === 'approved') {
-                const { error: sellerErr } = await supabase.from('sellers').insert({
-                    owner_id: app.applicant_id,
-                    name: app.brand_name,
-                    city: app.city,
-                    bio: app.bio,
-                    instagram: app.instagram
-                });
-                if (sellerErr) console.log('seller insert error:', sellerErr);
+                const { data: existing } = await supabase.from('sellers').select('id').eq('owner_id', app.applicant_id).maybeSingle();
+
+                if (!existing) {
+                    const { error: sellerErr } = await supabase.from('sellers').insert({
+                        owner_id: app.applicant_id,
+                        name: app.brand_name,
+                        city: app.city,
+                        bio: app.bio,
+                        instagram: app.instagram
+                    });
+                    if (sellerErr) console.log('seller insert error:', sellerErr);
+                }
 
                 const { error: roleErr } = await supabase.from('profiles').update({ role: 'seller' }).eq('id', app.applicant_id);
                 if (roleErr) console.log('role update error:', roleErr);
