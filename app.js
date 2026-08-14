@@ -929,7 +929,7 @@ function renderHome() {
                     </div>
                     <div class="collage-item collage-card-2" style="background: linear-gradient(45deg, #3B82F6 0%, #10B981 100%);">
                         <span class="collage-emoji">💍</span>
-                        <div class="collage-sticker yellow">chunky challas</div>
+                        <div class="collage-sticker yellow"></div>
                     </div>
                 </div>
             </section>
