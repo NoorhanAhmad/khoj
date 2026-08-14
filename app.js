@@ -913,7 +913,8 @@ function renderHome() {
                         get <span class="highlight">found</span> in seconds.
                     </h1>
                     <p class="hero-subtitle">
-                        no boring templates. no corporate jargon. just pure curated finds, local streetwear, and 1-of-1 thrifted gems from across pakistan.
+                        no boring templates. no corporate jargon. just pure curated finds, local brands, and gems sourced locally from Pakistan.
+                        for Pakistan, from Pakistan
                     </p>
                     <div class="hero-ctas">
                         <a href="#/explore" class="btn-khoj btn-blue hero-primary-btn">start digging 🔎</a>
