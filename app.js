@@ -8,11 +8,11 @@
    ========================================== */
 import { supabase } from './supabaseClient.js';
 const categories = [
-    { id: 'streetwear', name: 'gully wear', icon: '👕', description: 'oversized tees, cargos, and street essentials' },
+    { id: 'clothing', name: 'clothing basics', icon: '👕', description: 'tees, cargos, and all clothing essentials' },
     { id: 'thrift', name: 'retro thrift', icon: '🎒', description: 'handpicked 90s windbreakers, denim, and preloved jackets' },
     { id: 'accessories', name: 'accessories', icon: '💍', description: 'custom silver rings, beaded chains, and quirky keychains' },
-    { id: 'totes', name: 'bags & totes', icon: '👜', description: 'eco-friendly canvas tote bags with hand-painted designs' },
-    { id: 'zines-prints', name: 'zines & art', icon: '🎨', description: 'indie stickers, art prints, and local zines' }
+    { id: 'bags', name: 'bags & totes', icon: '👜', description: 'eco-friendly canvas tote bags with hand-painted designs' },
+    { id: 'arts and crafts', name: 'arts and handmade crafts', icon: '🎨', description: 'indie stickers, art prints, and handmade products' }
 ];
 
 const initialSellers = {
