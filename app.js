@@ -907,7 +907,7 @@ function renderHome() {
         <div class="home-page-container">
             <section class="hero-section container">
                 <div class="hero-content">
-                    <div class="sticker yellow hero-sticker">🔥 new wave of local brands</div>
+                    <div class="sticker yellow hero-sticker">🔥 small brands, big stories</div>
                     <h1 class="hero-title">
                         list in minutes, <br>
                         get <span class="highlight">found</span> in seconds.
