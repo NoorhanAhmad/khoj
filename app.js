@@ -905,14 +905,19 @@ function renderHome() {
    
     return `
         <div class="home-page-container">
-            <section class="hero-section container">
-                <div class="hero-content">
-                    <div class="sticker yellow hero-sticker">🔥 small brands, big stories</div>
-                    <h1 class="hero-title">
-                        list in minutes, <br>
-                        get <span class="highlight">found</span> in seconds.
-                    </h1>
-                  <p class="hero-subtitle">
+    <section class="hero-section container">
+        <div class="hero-content">
+            <div class="sticker yellow hero-sticker">🔥 small brands, big stories</div>
+            <h1 class="hero-title">
+                list in minutes,<br>
+                get <span class="highlight">found</span> in<br>
+                seconds.
+            </h1>
+            <p class="hero-subtitle">
+                no boring templates. no corporate jargon. just pure curated finds, local<br>
+                brands, and gems sourced locally<br>
+                <em>for Pakistan, from Pakistan</em>
+            </p>
   no boring templates. no corporate jargon. just pure curated finds, local brands, and gems sourced locally<br>
   <em>for Pakistan, from Pakistan</em>
 </p>
