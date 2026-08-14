@@ -21,11 +21,10 @@ export default async function handler(req, res) {
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             }
         );
-
         const data = await response.json();
         const suggestion = data.candidates?.[0]?.content?.parts?.[0]?.text || 'no suggestion available right now.';
-        res.status(200).json({ suggestion });
+        res.status(200).json({ suggestion, raw: data });
     } catch (err) {
-        res.status(500).json({ error: 'AI request failed' });
+        res.status(500).json({ error: 'AI request failed: ' + err.message });
     }
 }
