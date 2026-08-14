@@ -909,8 +909,8 @@ function renderHome() {
                 <div class="hero-content">
                     <div class="sticker yellow hero-sticker">🔥 new wave of local brands</div>
                     <h1 class="hero-title">
-                        your funny friend's shop, <br>
-                        but make it a <span class="highlight">khazana</span>.
+                        list in minutes, <br>
+                        get <span class="highlight">found</span> in seconds.
                     </h1>
                     <p class="hero-subtitle">
                         no boring templates. no corporate jargon. just pure curated finds, local streetwear, and 1-of-1 thrifted gems from across pakistan.

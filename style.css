@@ -1509,17 +1509,19 @@ a {
 }
 
 .size-btn-visual {
+    box-sizing: border-box;
     display: inline-flex;
-    min-width: 44px;
-    height: 44px;
-    border: var(--border-width) solid var(--color-border);
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1.5px solid var(--color-border);
     background-color: #ffffff;
-    border-radius: 8px;
+    border-radius: 6px;
     align-items: center;
     justify-content: center;
     font-family: var(--font-heading);
-    font-weight: 800;
-    font-size: 0.9rem;
+    font-weight: 700;
+    font-size: 0.82rem;
     transition: background-color var(--transition-fast) ease, transform var(--transition-fast) ease;
 }
 
