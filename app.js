@@ -918,9 +918,7 @@ function renderHome() {
                 brands, and gems sourced locally<br>
                 <em>for Pakistan, from Pakistan</em>
             </p>
-  no boring templates. no corporate jargon. just pure curated finds, local brands, and gems sourced locally<br>
-  <em>for Pakistan, from Pakistan</em>
-</p>
+
                     <div class="hero-ctas">
                         <a href="#/explore" class="btn-khoj btn-blue hero-primary-btn">start digging 🔎</a>
                         <a href="#/explore" class="btn-khoj hero-secondary-btn">fresh drops ⚡</a>
