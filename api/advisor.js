@@ -13,16 +13,20 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            }
-        );
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+
         const data = await response.json();
-        const suggestion = data.candidates?.[0]?.content?.parts?.[0]?.text || 'no suggestion available right now.';
+        const suggestion = data.choices?.[0]?.message?.content || 'no suggestion available right now.';
         res.status(200).json({ suggestion, raw: data });
     } catch (err) {
         res.status(500).json({ error: 'AI request failed: ' + err.message });
