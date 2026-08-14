@@ -1760,6 +1760,7 @@ function renderSellerDashboard() {
                             <button id="show-add-modal-btn" class="btn-khoj btn-blue list-add-trigger">+ list new find</button>
                             <button id="ai-advisor-btn" class="btn-khoj btn-blue" style="margin-left: 10px;">✨ ai marketing tips</button>
                         </div>
+                        <div id="ai-advisor-result" style="padding: 14px; display: none; background: #fdf6ec; border-radius: 8px; margin: 12px 0; font-size: 0.9rem; line-height: 1.5;"></div>
                         <div class="listings-table-container">
                             ${sellerProducts.length === 0 ? `
                                 <div class="table-empty-state"><p>you have no active listings. click "+ list new find" to add one!</p></div>
@@ -1792,7 +1793,7 @@ function renderSellerDashboard() {
                    
                     <div class="dashboard-panel-card" style="margin-top: 28px;">
                         <h3>incoming orders queue</h3>
-                        <div id="ai-advisor-result" style="padding: 14px; display: none; background: #fdf6ec; border-radius: 8px; margin: 12px 0; font-size: 0.9rem; line-height: 1.5;"></div>
+                       
                         <div class="listings-table-container">
                             ${sellerOrders.length === 0 ? `
                                 <div class="table-empty-state"><p>no orders received yet. when buyers purchase your listings, they will show up here.</p></div>
